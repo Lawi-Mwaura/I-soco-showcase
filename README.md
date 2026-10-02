@@ -30,40 +30,31 @@ I-soco combines a Next.js web interface with Supabase services and PostgreSQL. T
 
 ## System design
 
-**Reading the diagram:** blue = interface; green = processing; gold = data; purple = access, lifecycle, or operational control. Arrow labels describe the handoff between components.
+**Component architecture.** The boxes identify technologies and responsibilities; boundaries group the application runtime and managed backend. Relationships show dependencies and integration protocols, rather than a step-by-step processing flow.
 
 ```mermaid
-flowchart TB
-    subgraph CLIENT[Client · presentation boundary]
-        UI[Next.js web interface]
-    end
-    subgraph TRUST[Trusted processing · verification boundary]
-        AUTH[Authentication and request validation]
-        VERIFY[Verify external provider state]
-        REC[Reconciliation and guarded transitions]
-        STATE[Status and recovery response]
-    end
-    EXT[External provider · repeated or late events]
-    subgraph STORAGE[Persistence · atomic consistency boundary]
-        DB[(PostgreSQL transaction)]
-        UNIQUE[Event and durable-effect uniqueness]
-    end
-    UI -->|Authenticated request| AUTH
-    AUTH -->|Validated operation| REC
-    EXT -->|Callback or status response| VERIFY
-    VERIFY -->|Verified state| REC
-    REC -->|Lock and apply atomically| DB
-    UNIQUE --- DB
-    DB -->|Persisted outcome| STATE
-    STATE -->|Confirmed, unresolved, or failed| UI
-    classDef client fill:#EAF2FF,stroke:#3564A3,color:#142D4F,stroke-width:2px;
-    classDef service fill:#E7F5F0,stroke:#24745C,color:#123E32,stroke-width:2px;
-    classDef data fill:#FFF4D6,stroke:#966F20,color:#4D3810,stroke-width:2px;
-    classDef control fill:#F2ECFA,stroke:#7653A1,color:#382451,stroke-width:2px;
-    class UI client;
-    class AUTH,VERIFY,REC,STATE service;
-    class DB,UNIQUE data;
-    class EXT control;
+C4Container
+    title I-soco - application architecture
+    Container(web, "Web application", "Next.js + React / TypeScript", "Interface and server routes")
+    System_Boundary(supabase, "Supabase backend platform") {
+        Container(auth, "Supabase Auth", "Managed authentication", "Identity and session verification")
+        Container(edge, "Supabase Edge Functions", "Serverless functions", "Trusted operations and reconciliation")
+        ContainerDb(db, "Supabase Database", "PostgreSQL", "Transactions, row locks and unique keys")
+        Container(storage, "Supabase Storage", "Object storage", "Controlled media access")
+    }
+    System_Ext(provider, "External services", "Callbacks and authoritative status")
+    Rel(web, auth, "Authenticates", "Supabase SDK / HTTPS")
+    Rel(web, edge, "Calls trusted operations", "HTTPS")
+    Rel(edge, db, "Coordinates atomic changes", "Database RPC")
+    Rel(edge, storage, "Controls media access", "Storage SDK")
+    BiRel(edge, provider, "Integration boundary", "HTTPS")
+    UpdateElementStyle(web, $bgColor="#24486B", $fontColor="#FFFFFF", $borderColor="#24486B")
+    UpdateElementStyle(auth, $bgColor="#24745C", $fontColor="#FFFFFF", $borderColor="#24745C")
+    UpdateElementStyle(edge, $bgColor="#24745C", $fontColor="#FFFFFF", $borderColor="#24745C")
+    UpdateElementStyle(storage, $bgColor="#24745C", $fontColor="#FFFFFF", $borderColor="#24745C")
+    UpdateElementStyle(db, $bgColor="#966F20", $fontColor="#FFFFFF", $borderColor="#966F20")
+    UpdateElementStyle(provider, $bgColor="#7653A1", $fontColor="#FFFFFF", $borderColor="#7653A1")
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
 ```
 
 *Simplified responsibility map. It omits proprietary entities, endpoint names, commercial rules, and deployment details.*
