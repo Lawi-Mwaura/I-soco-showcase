@@ -32,30 +32,7 @@ I-soco combines a Next.js web interface with Supabase services and PostgreSQL. T
 
 **Component architecture.** The boxes identify technologies and responsibilities; boundaries group the application runtime and managed backend. Relationships show dependencies and integration protocols, rather than a step-by-step processing flow.
 
-```mermaid
-C4Container
-    title I-soco - application architecture
-    Container(web, "Web application", "Next.js + React / TypeScript", "Interface and server routes")
-    System_Boundary(supabase, "Supabase backend platform") {
-        Container(auth, "Supabase Auth", "Managed authentication", "Identity and session verification")
-        Container(edge, "Supabase Edge Functions", "Serverless functions", "Trusted operations and reconciliation")
-        ContainerDb(db, "Supabase Database", "PostgreSQL", "Transactions, row locks and unique keys")
-        Container(storage, "Supabase Storage", "Object storage", "Controlled media access")
-    }
-    System_Ext(provider, "External services", "Callbacks and authoritative status")
-    Rel(web, auth, "Authenticates", "Supabase SDK / HTTPS")
-    Rel(web, edge, "Calls trusted operations", "HTTPS")
-    Rel(edge, db, "Coordinates atomic changes", "Database RPC")
-    Rel(edge, storage, "Controls media access", "Storage SDK")
-    BiRel(edge, provider, "Integration boundary", "HTTPS")
-    UpdateElementStyle(web, $bgColor="#24486B", $fontColor="#FFFFFF", $borderColor="#24486B")
-    UpdateElementStyle(auth, $bgColor="#24745C", $fontColor="#FFFFFF", $borderColor="#24745C")
-    UpdateElementStyle(edge, $bgColor="#24745C", $fontColor="#FFFFFF", $borderColor="#24745C")
-    UpdateElementStyle(storage, $bgColor="#24745C", $fontColor="#FFFFFF", $borderColor="#24745C")
-    UpdateElementStyle(db, $bgColor="#966F20", $fontColor="#FFFFFF", $borderColor="#966F20")
-    UpdateElementStyle(provider, $bgColor="#7653A1", $fontColor="#FFFFFF", $borderColor="#7653A1")
-    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
-```
+![isoco application components and labelled backend dependencies](assets/isoco-architecture.svg)
 
 *Simplified responsibility map. It omits proprietary entities, endpoint names, commercial rules, and deployment details.*
 
